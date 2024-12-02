@@ -1,5 +1,5 @@
-class SubArray: 
-
+class Array: 
+    # Esta clase deberia ser Array
     def __init__(self, antenna_data, antenna_names, diameters, observatory):
         
         self.antenna_data = antenna_data
