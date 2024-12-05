@@ -1,6 +1,10 @@
-from subarray import Array
+from Array.subarray import Array
 from antenna_configs import io, ska_array_assembly
+from astropy.coordinates import EarthLocation
 
+LOW_ARRAY_REF = EarthLocation.from_geodetic(
+    116.7644482, -26.82472208, 365.0, ellipsoid="WGS84"
+)
 
 
 class LowSubarray(Array): 
@@ -29,7 +33,7 @@ class LowSubarray(Array):
             antenna_names,
             diameters,
             observatory,
-            array_ref=1
+            LOW_ARRAY_REF
         )
 
     def getStationNames(self):

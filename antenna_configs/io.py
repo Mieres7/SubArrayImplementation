@@ -37,7 +37,7 @@ def io(input_name, antenna_ids=None):
 
     x, y, z = data["x"], data["y"], data["z"]
     diameters = da.from_array(data["D"], chunks="auto", asarray=False)
-
+    
     if antenna_ids is None:
         raise ValueError("`antenna_ids` must be provided when `filter_antennas` is True.")
 
