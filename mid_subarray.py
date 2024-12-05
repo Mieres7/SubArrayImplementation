@@ -1,14 +1,13 @@
 from subarray import Array
-from antenna_configs import ska_array_assembly, fileReader
+from antenna_configs import io, ska_array_assembly
 
 
 class MidSubArray(Array):
     """MidSubArray Class"""
     def __init__(
         self, 
-        stage,
+        stage="AA*",
     ):
-
         assert stage.casefold() in [
                 x.casefold() for x in ska_array_assembly.VALID_AA_MID
             ], (
@@ -17,22 +16,24 @@ class MidSubArray(Array):
             )
         self.stage = stage
 
-        stationFile = "./antenna_configs/skamidcoordsNew.cfg"
+        coordinates_file = "./antenna_configs/ska_mid_coordinates.cfg"
 
         antenna_names = self.getStationNames()
-        antenna_data, observatory, diameters= fileReader.fileReader(stationFile, True, antenna_names)   
+        
+        antenna_data, observatory, diameters= io.io(coordinates_file, antenna_names)   
         
         super().__init__(
             antenna_data,
             antenna_names,
             diameters,
-            observatory
+            observatory,
+            array_ref=1
         )
 
     def getStationNames(self):
       
         if self.stage.casefold() == "AA4".casefold():
-            station_list = self._full_array_data["Label"].to_list() # ver esto
+            station_list = ska_array_assembly.MID_AA4.split(",")
         elif self.stage.casefold() == "AA*".casefold():
             station_list = ska_array_assembly.MID_AAstar.split(",")
         elif self.stage.casefold() == "AA2".casefold():
