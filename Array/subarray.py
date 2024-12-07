@@ -1,20 +1,18 @@
 import matplotlib.pyplot as plt
 import dask.array as da
+import numpy as np
 
-from utils.utils import ecef_to_enu
+from antenna_configs import ska_array_assembly
 
 
 class Array: 
     def __init__(self, antenna_data, antenna_names, diameters, observatory, array_ref):
         
-        antenna_data = ecef_to_enu(antenna_data=antenna_data, array_ref=array_ref)
-
         self.antenna_data = antenna_data
         self.antenna_names = antenna_names
         self.diameters = diameters
         self.observatory = observatory
         self.array_ref = array_ref
-
 
 
     def plot_array_layout(self, axes=None, scale="kilo", title=None,**kwargs):
@@ -50,17 +48,6 @@ class Array:
             **kwargs,
         )
 
-        # for i, label in enumerate(self.antenna_names):  # Assuming the labels are in the 3rd column (index 2)
-        #     axes.text(
-        #         x[i] / fscale,
-        #         y[i] / fscale,
-        #         label,  # Antenna label
-        #         color='blue',  # Color of the text
-        #         fontsize=8,  # Font size
-        #         ha='center',  # Horizontal alignment
-        #         va='center',  # Vertical alignment
-        # )
-
         axes.set_xlabel(f"X ({uscale}m)")
         axes.set_ylabel(f"Y ({uscale}m)")
 
@@ -71,7 +58,95 @@ class Array:
             return fig, axes
 
 
+    def get_ska_mid_atennas_by_stage(self, stage="AA*"):
+        
+        if stage.casefold() == "AA4".casefold():
+            station_list = ska_array_assembly.MID_AA4.split(",")
+        elif stage.casefold() == "AA*".casefold():
+            station_list = ska_array_assembly.MID_AAstar.split(",")
+        elif stage.casefold() == "AA2".casefold():
+            station_list = ska_array_assembly.MID_AA2.split(",")
+        elif stage.casefold() == "AA1".casefold():
+            station_list = ska_array_assembly.MID_AA1.split(",")
+        elif stage.casefold() == "AA0.5".casefold():
+            station_list = ska_array_assembly.MID_AA05.split(",")
+        else:
+            raise ValueError("Invalid subarray type specified! Valid subarray names (case-insensitive) "
+                f"are {ska_array_assembly.VALID_AA_MID}")
 
+        ids = np.array([id_.decode('utf-8').strip() for id_ in self.antenna_names])
 
+        mask = np.isin(ids, station_list)
+
+        if not np.any(mask):  
+            missing_ids = set(station_list) - set(ids)
+            raise ValueError(f"The following antenna IDs were not found in the file: {missing_ids}")
+
+        filtered_ids = ids[mask]
+        filtered_data = self.antenna_data[mask]
+        filtered_diameters = self.diameters[mask]
+
+        filtered_data = filtered_data.compute()  
+        filtered_diameters = filtered_diameters.compute()  
+
+        sorted_indices = np.argsort(filtered_ids)
+
+        antenna_data = da.from_array(filtered_data[sorted_indices], chunks="auto", asarray=False)
+        diameters = da.from_array(filtered_diameters[sorted_indices], chunks="auto", asarray=False)
+
+        self.antenna_names = filtered_ids[sorted_indices]
+        self.antenna_data = antenna_data
+        self.diameters = diameters
+
+    def get_ska_low_atennas_by_stage(self, stage="AA*"):
+        
+        if stage.casefold() == "AA4".casefold():
+            station_list = self.formatStationsName(ska_array_assembly.LOW_AA4)
+        elif stage.casefold() == "AA*".casefold():
+            station_list = self.formatStationsName(ska_array_assembly.LOW_AAstar)
+        elif stage.casefold() == "AA2".casefold():
+            station_list = self.formatStationsName(ska_array_assembly.LOW_AA2)
+        elif stage.casefold() == "AA1".casefold():
+            station_list = self.formatStationsName(ska_array_assembly.LOW_AA1)
+        elif stage.casefold() == "AA0.5".casefold():
+            station_list = self.formatStationsName(ska_array_assembly.LOW_AA05)
+        else:
+            raise ValueError("Invalid subarray type specified! Valid subarray names (case-insensitive) "
+                f"are {ska_array_assembly.VALID_AA_LOW}")
+
+        ids = np.array([id_.decode('utf-8').strip() for id_ in self.antenna_names])
+
+        mask = np.isin(ids, station_list)
+
+        if not np.any(mask):  
+            missing_ids = set(station_list) - set(ids)
+            raise ValueError(f"The following antenna IDs were not found in the file: {missing_ids}")
+
+        filtered_ids = ids[mask]
+        filtered_data = self.antenna_data[mask]
+        filtered_diameters = self.diameters[mask]
+
+        filtered_data = filtered_data.compute()  
+        filtered_diameters = filtered_diameters.compute()  
+
+        sorted_indices = np.argsort(filtered_ids)
+
+        antenna_data = da.from_array(filtered_data[sorted_indices], chunks="auto", asarray=False)
+        diameters = da.from_array(filtered_diameters[sorted_indices], chunks="auto", asarray=False)
+
+        self.antenna_names = filtered_ids[sorted_indices]
+        self.antenna_data = antenna_data
+        self.diameters = diameters
+        return
+
+    def formatStationsName(self, station_list):
+        formatted_station_list = []
+        for element in station_list.split(","):
+            this_station = element.lstrip().rstrip()
+            if this_station[0].isdigit():
+                formatted_station_list.append(f"C{this_station}")
+            else:
+                formatted_station_list.append(this_station)
+        return formatted_station_list
 
 

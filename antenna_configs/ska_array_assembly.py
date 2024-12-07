@@ -1,4 +1,4 @@
-# List of valid array assemblies supported by this package
+    # List of valid array assemblies supported by this package
 VALID_AA_MID = [
     "AA4",
     "AA*",

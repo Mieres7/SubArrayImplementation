@@ -25,7 +25,7 @@ class LowSubarray(Array):
 
         antenna_names = self.getStationNames()
 
-        antenna_data, observatory, diameters = io.io(stationFile, antenna_names)   
+        antenna_data, observatory, diameters, center_of_array = io.io(stationFile, antenna_names)   
         
 
         super().__init__(
@@ -33,7 +33,7 @@ class LowSubarray(Array):
             antenna_names,
             diameters,
             observatory,
-            LOW_ARRAY_REF
+            center_of_array
         )
 
     def getStationNames(self):

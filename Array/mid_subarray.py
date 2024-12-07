@@ -1,10 +1,7 @@
 from Array.subarray import Array
 from antenna_configs import io, ska_array_assembly
-from astropy.coordinates import EarthLocation
 
-MID_ARRAY_REF = EarthLocation.from_geodetic(
-    21.44380263, -30.71292499, 1095.967, ellipsoid="WGS84"
-)
+
 
 class MidSubArray(Array):
     """MidSubArray Class"""
@@ -24,14 +21,14 @@ class MidSubArray(Array):
 
         antenna_names = self.getStationNames()
         
-        antenna_data, observatory, diameters= io.io(coordinates_file, antenna_names)   
+        antenna_data, observatory, diameters, center_of_array = io.io(coordinates_file, antenna_names)   
         
         super().__init__(
             antenna_data,
             antenna_names,
             diameters,
             observatory,
-            MID_ARRAY_REF
+            center_of_array
         )
 
     def getStationNames(self):

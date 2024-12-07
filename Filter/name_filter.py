@@ -23,20 +23,17 @@ class IdFilter(Filter):
         if isinstance(array.antenna_data, da.Array):
             antenna_data_array = array.antenna_data
         else:
-            antenna_data_array = da.from_array(array.antenna_data, chunks='auto', asarray=False)
+            antenna_data_array = da.from_array(array.antenna_data, chunks='auto')
 
         antenna_names_array = np.array(array.antenna_names)
-        diameters_array = np.array(array.diameters)
+        diameters_array = da.asarray(array.diameters, chunks="auto")
 
-        # Dependiendo del modo de filtrado, usar la comparación adecuada
+        
         if self.filter_mode == 'exact':
-            # Modo exacto: Coincide exactamente con los nombres proporcionados
             mask = np.isin(antenna_names_array, self.ids)
         elif self.filter_mode == 'partial':
-            # Modo parcial: Coincide con los nombres que contienen las cadenas dadas
             mask = np.array([any(id in name for id in self.ids) for name in antenna_names_array])
 
-        # Filtrar los datos
         filtered_antenna_data = antenna_data_array[mask]
         filtered_antenna_names = antenna_names_array[mask]
         filtered_diameters = diameters_array[mask]
